@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Elastic Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --elastic-pink: #F04E98;
+    --elastic-yellow: #FEC514;
+    --elastic-teal: #00BFB3;
+    --elastic-blue: #07C;
+    --elastic-green: #93C90E;
+    --elastic-search: #00BFB3;
+    --elastic-observability: #F04E98;
+    --elastic-security: #07C;
+    --ink: #1C1E21;
+    --muted: #55606A;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: "Inter", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    overflow: hidden;
+    background: linear-gradient(135deg, #FFD23F 0%, #FF6FA5 32%, #00D9C0 66%, #2F8FFF 100%);
+  }
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    text-align: center;
+    padding: 40px;
+    position: relative;
+  }
+  .screen.active { display: flex; }
+
+  .card {
+    background: #FFFFFF;
+    border-radius: 28px;
+    box-shadow: 0 20px 60px rgba(28, 30, 33, 0.12);
+    padding: 56px 64px;
+    max-width: 780px;
+    width: 100%;
+  }
+
+  .logo { height: 54px; margin-bottom: 28px; }
+  .bug-watermark {
+    position: fixed;
+    width: 520px;
+    opacity: 0.08;
+    bottom: -90px;
+    right: -90px;
+    pointer-events: none;
+  }
+
+  h1 { font-size: 44px; font-weight: 800; margin: 0 0 14px; letter-spacing: -0.5px; }
+  p.sub { font-size: 21px; color: var(--muted); margin: 0 0 32px; max-width: 700px; line-height: 1.4; }
+  input[type="email"] {
+    font-size: 20px;
+    padding: 16px 20px;
+    width: 420px;
+    max-width: 80vw;
+    border: 2px solid #D3DAE6;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-family: inherit;
+  }
+  input[type="email"]:focus { outline: none; border-color: var(--elastic-teal); }
+  .optin-enticing {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(135deg, #E3F7F5, #FDE8EF);
+    border: 2px solid var(--elastic-teal);
+    border-radius: 14px;
+    padding: 18px 26px;
+    margin: 26px auto 0;
+    max-width: 560px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+  }
+  .optin-enticing input { width: 24px; height: 24px; accent-color: var(--elastic-teal); cursor: pointer; flex-shrink: 0; }
+  button.primary {
+    font-size: 20px;
+    font-weight: 700;
+    padding: 16px 48px;
+    border: none;
+    border-radius: 10px;
+    background: var(--ink);
+    color: white;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  button.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(28,30,33,0.25); }
+  button.primary:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
+  .error { color: #BD271E; font-size: 15px; min-height: 22px; margin-bottom: 8px; }
+  .warning { color: #975D00; font-size: 14px; min-height: 20px; margin: -8px 0 16px; max-width: 420px; }
+
+  .choice-grid {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .choice-box {
+    width: 260px;
+    height: 270px;
+    border-radius: 20px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    box-shadow: 0 14px 30px rgba(28, 30, 33, 0.18);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .choice-box:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 20px 40px rgba(28, 30, 33, 0.25); }
+  .choice-box:active { transform: scale(0.98); }
+  .choice-box .headline { font-size: 32px; font-weight: 800; margin-bottom: 10px; }
+  .choice-box .detail { font-size: 15px; opacity: 0.92; padding: 0 20px; line-height: 1.4; }
+  .choice-box.search { background: linear-gradient(160deg, #00D6C9, #009B91); }
+  .choice-box.observability { background: linear-gradient(160deg, #FF6CAE, #D63A80); }
+  .choice-box.security { background: linear-gradient(160deg, #2196F3, #0558B3); }
+
+  .demo-frame-wrap {
+    width: 90vw;
+    height: 74vh;
+    border-radius: 20px;
+    border: 3px solid var(--elastic-teal);
+    box-shadow: 0 10px 30px rgba(28, 30, 33, 0.15);
+    overflow: hidden;
+    background: white;
+    transition: border-color 0.2s ease;
+  }
+  .demo-frame-wrap.track-search { border-color: #00BFB3; }
+  .demo-frame-wrap.track-observability { border-color: #F04E98; }
+  .demo-frame-wrap.track-security { border-color: #0077CC; }
+  #demo-iframe { width: 100%; height: 100%; border: none; display: block; }
+  .demo-actions { display: flex; gap: 16px; align-items: center; margin-top: 22px; }
+
+  .congrats-stack { display: flex; flex-direction: column; gap: 18px; align-items: center; max-width: 780px; width: 100%; }
+  .congrats-stack .card { padding: 34px 56px; }
+  .congrats-stack h1 { font-size: 32px; }
+  .congrats-stack .congrats-badge { font-size: 48px; margin-bottom: 4px; }
+  .congrats-stack .sub { margin-bottom: 14px; }
+  .card h2 { font-size: 26px; font-weight: 800; margin: 0 0 8px; }
+  .yesno { display: flex; gap: 20px; justify-content: center; margin-top: 8px; }
+  button.secondary {
+    font-size: 19px;
+    font-weight: 600;
+    padding: 14px 40px;
+    border-radius: 10px;
+    border: 2px solid var(--ink);
+    background: white;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  button.secondary:hover { background: #F5F7FA; }
+
+  .congrats-badge {
+    font-size: 64px;
+    margin-bottom: 8px;
+  }
+
+  .finale-card {
+    background: linear-gradient(135deg, #FFF4D6 0%, #FDE3EE 60%, #E3F7F5 100%);
+    border: 3px solid var(--elastic-yellow);
+  }
+  .finale-badge { font-size: 72px; margin-bottom: 10px; letter-spacing: 6px; }
+
+  #reset-link {
+    position: fixed;
+    bottom: 10px;
+    right: 16px;
+    font-size: 12px;
+    color: #C9CDD3;
+    text-decoration: none;
+    cursor: pointer;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<img class="bug-watermark" src="Main.png" alt="">
+
+<!-- LANDING -->
+<div class="screen" id="screen-landing">
+  <div class="card">
+    <img class="logo" src="Full.png" alt="Elastic">
+    <h1>Welcome to the Elastic Challenge!</h1>
+    <p class="sub">Enter your business email to begin.</p>
+    <form id="landing-form">
+      <div class="error" id="landing-error"></div>
+      <input type="email" id="landing-email" placeholder="you@company.com" autocomplete="off" required>
+      <div class="warning" id="landing-warning"></div>
+      <button type="submit" class="primary" id="landing-submit">Start</button>
+    </form>
+  </div>
+</div>
+
+<!-- CHOICE -->
+<div class="screen" id="screen-choice">
+  <h1>Choose the area you are interested in.</h1>
+  <div class="choice-grid">
+    <button class="choice-box search" data-choice="search">
+      <div class="headline">Search</div>
+      <div class="detail">AI-powered search & RAG</div>
+    </button>
+    <button class="choice-box observability" data-choice="observability">
+      <div class="headline">Observability</div>
+      <div class="detail">Monitor & troubleshoot everything</div>
+    </button>
+    <button class="choice-box security" data-choice="security">
+      <div class="headline">Security</div>
+      <div class="detail">Detect & respond at scale</div>
+    </button>
+  </div>
+</div>
+
+<!-- DEMO (embedded navattic) -->
+<div class="screen" id="screen-demo">
+  <div class="demo-frame-wrap" id="demo-frame-wrap">
+    <iframe id="demo-iframe" src="" title="Elastic interactive demo"></iframe>
+  </div>
+  <div class="demo-actions">
+    <button class="secondary" id="demo-exit">⏳ Ran out of time — exit demo for now</button>
+  </div>
+</div>
+
+<!-- SORRY (early exit) -->
+<div class="screen" id="screen-sorry">
+  <div class="card">
+    <h1>Sorry to see you go!</h1>
+    <p class="sub">Thanks for checking out the demo.</p>
+    <label class="optin-enticing">
+      <input type="checkbox" id="sorry-optin">
+      <span>📩 Yes, I'd like to learn more — have Elastic reach out to me!</span>
+    </label>
+    <button class="primary" id="sorry-done" style="margin-top: 20px;">Done</button>
+  </div>
+</div>
+
+<!-- CONGRATS -->
+<div class="screen" id="screen-congrats">
+  <div class="congrats-stack">
+    <div class="card">
+      <div class="congrats-badge">🎉</div>
+      <h1>Congratulations, you finished the challenge!</h1>
+      <p class="sub" style="margin-bottom: 0;">Raise your hand to have an attendant give you a prize ticket.</p>
+      <label class="optin-enticing">
+        <input type="checkbox" id="congrats-optin">
+        <span>📩 Yes, I'd like to learn more — have Elastic reach out to me!</span>
+      </label>
+    </div>
+    <div class="card">
+      <h2>Want to keep going?</h2>
+      <p class="sub">Take on one more challenge for a shot at the master prize.</p>
+      <div class="yesno">
+        <button class="primary" id="master-yes">Yes, let's go!</button>
+        <button class="secondary" id="master-no">Not right now</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FINALE (after master-prize challenge) -->
+<div class="screen" id="screen-finale">
+  <div class="card finale-card">
+    <div class="finale-badge">🏆🎉🎊</div>
+    <h1>Thanks for playing!</h1>
+    <p class="sub">You crushed the Master Prize Challenge! Raise your hand one more time — you've been entered into our drawing for the special prize.</p>
+  </div>
+</div>
+
+<a id="reset-link" title="Reset kiosk">reset</a>
+
+<script>
+  // ---------------- CONFIG: edit these ----------------
+  const CONFIG = {
+    sheetEndpoint: "https://script.google.com/macros/s/AKfycbxRNIfxbHg1eiFKXmhajnsUNF2mjbHtDgxsjSSQQ0Xty2HxmlXCx9icmXiRkGw-36UOkw/exec",
+    navatticUrls: {
+      search: "navattic.html",
+      observability: "navattic.html",
+      security: "https://elastic.navattic.com/xxv09jr"
+    },
+    masterPrizeUrl: "ai-game.html",
+    sharedSecret: "4a44e985fe23f292380ecd84d0314b6f"
+  };
+  // ------------------------------------------------------
+
+  const SESSION_KEY = "elasticChallengeSession";
+  const KIOSK_KEY = "elasticChallengeKioskId";
+
+  // Non-blocking nudge only — never prevents submission.
+  const FREE_EMAIL_DOMAINS = [
+    "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "live.com",
+    "icloud.com", "me.com", "aol.com", "protonmail.com", "msn.com",
+    "mail.com", "gmx.com"
+  ];
+  function isPersonalEmail(email) {
+    const domain = email.split("@")[1];
+    return !!domain && FREE_EMAIL_DOMAINS.includes(domain.toLowerCase());
+  }
+
+  function getKioskId() {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get("kiosk");
+    if (fromUrl) localStorage.setItem(KIOSK_KEY, fromUrl);
+    return localStorage.getItem(KIOSK_KEY) || "unknown";
+  }
+
+  function getSession() {
+    try { return JSON.parse(localStorage.getItem(SESSION_KEY)) || null; }
+    catch (e) { return null; }
+  }
+  function setSession(data) { localStorage.setItem(SESSION_KEY, JSON.stringify(data)); }
+  function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+  function capture(payload) {
+    const body = JSON.stringify(Object.assign({ kioskId: getKioskId(), secret: CONFIG.sharedSecret }, payload));
+    try {
+      navigator.sendBeacon(CONFIG.sheetEndpoint, new Blob([body], { type: "text/plain;charset=UTF-8" }));
+    } catch (e) {
+      fetch(CONFIG.sheetEndpoint, { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body }).catch(() => {});
+    }
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+  }
+
+  function goLanding() {
+    clearSession();
+    document.getElementById("landing-email").value = "";
+    document.getElementById("congrats-optin").checked = false;
+    document.getElementById("sorry-optin").checked = false;
+    document.getElementById("landing-error").textContent = "";
+    document.getElementById("landing-warning").textContent = "";
+    showScreen("screen-landing");
+  }
+
+  function goChoice() { showScreen("screen-choice"); }
+  function goCongrats() { showScreen("screen-congrats"); }
+  function goFinale() { showScreen("screen-finale"); }
+  let exitPhase = null;
+  function goSorry(phase) { exitPhase = phase; showScreen("screen-sorry"); }
+
+  function goDemo(choice) {
+    const wrap = document.getElementById("demo-frame-wrap");
+    wrap.classList.remove("track-search", "track-observability", "track-security");
+    wrap.classList.add("track-" + choice);
+    document.getElementById("demo-iframe").src = CONFIG.navatticUrls[choice];
+    showScreen("screen-demo");
+  }
+
+  document.getElementById("landing-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const email = document.getElementById("landing-email").value.trim();
+    const errorEl = document.getElementById("landing-error");
+    const warningEl = document.getElementById("landing-warning");
+    errorEl.textContent = "";
+    warningEl.textContent = "";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errorEl.textContent = "Please enter a valid email address.";
+      return;
+    }
+    const personal = isPersonalEmail(email);
+    setSession({ email, personalEmail: personal, awaitingReturn: false });
+    if (personal) {
+      warningEl.textContent = "Looks like a personal email address — no problem, just continuing!";
+      setTimeout(goChoice, 1300);
+    } else {
+      goChoice();
+    }
+  });
+
+  document.querySelectorAll(".choice-box").forEach(box => {
+    box.addEventListener("click", () => {
+      const choice = box.getAttribute("data-choice");
+      const session = getSession() || {};
+      session.choice = choice;
+      setSession(session);
+      capture({ stage: "initial", email: session.email, choice, personalEmail: session.personalEmail });
+      goDemo(choice);
+    });
+  });
+
+  document.getElementById("demo-exit").addEventListener("click", () => {
+    document.getElementById("demo-iframe").src = "";
+    goSorry("initial_demo");
+  });
+
+  document.getElementById("sorry-done").addEventListener("click", () => {
+    const session = getSession() || {};
+    const contactOptIn = document.getElementById("sorry-optin").checked;
+    capture({ stage: "exited_early_" + (exitPhase || "unknown"), email: session.email, choice: session.choice, contactOptIn });
+    goLanding();
+  });
+
+  document.getElementById("master-yes").addEventListener("click", () => {
+    const session = getSession() || {};
+    const contactOptIn = document.getElementById("congrats-optin").checked;
+    capture({ stage: "master_prize", email: session.email, choice: session.choice, contactOptIn, decision: "yes" });
+    session.contactOptIn = contactOptIn;
+    session.awaitingReturn = "second";
+    setSession(session);
+    window.location.href = CONFIG.masterPrizeUrl;
+  });
+
+  document.getElementById("master-no").addEventListener("click", () => {
+    const session = getSession() || {};
+    const contactOptIn = document.getElementById("congrats-optin").checked;
+    capture({ stage: "master_prize", email: session.email, choice: session.choice, contactOptIn, decision: "no" });
+    goLanding();
+  });
+
+  document.getElementById("reset-link").addEventListener("click", goLanding);
+
+  // Entry point: resume mid-flow depending on how we got here.
+  getKioskId();
+  const urlParams = new URLSearchParams(window.location.search);
+  const existing = getSession();
+  if (urlParams.get("step") === "congrats") {
+    // navattic's own "redirect on completion" setting should point here —
+    // e.g. https://<your-hosted-url>/challenge.html?step=congrats
+    // That redirect breaks out of the iframe (top-level navigation), so this
+    // is the real signal that they finished the demo, not just clicked away.
+    history.replaceState(null, "", window.location.pathname);
+    goCongrats();
+  } else if (existing && existing.awaitingReturn === "second") {
+    goFinale();
+  } else {
+    goLanding();
+  }
+</script>
+</body>
+</html>
