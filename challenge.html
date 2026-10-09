@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script>void 0===window.navatticQueue&&(window.navatticQueue=[],window.navattic=new Proxy({},{get:function n(t,u,e){return function(){for(var n=arguments.length,t=Array(n),e=0;e<n;e++)t[e]=arguments[e];return navatticQueue.push({function:u,arguments:t})}}}));</script>
+<script async src="https://js.navattic.com/sdk.js?key=pkey_cm34kh4yu00uqrs3b9dpt5clw"></script>
 <style>
   :root {
     --elastic-pink: #F04E98;
@@ -289,12 +291,6 @@
 <a id="reset-link" title="Reset kiosk">reset</a>
 
 <script>
-  // navattic's completion redirect navigates the iframe itself, not the top-level
-  // page — so break out to the top window whenever we're loaded inside a frame.
-  if (window.top !== window.self) {
-    window.top.location.href = window.location.href;
-  }
-
   // ---------------- CONFIG: edit these ----------------
   const CONFIG = {
     sheetEndpoint: "https://script.google.com/macros/s/AKfycbxRNIfxbHg1eiFKXmhajnsUNF2mjbHtDgxsjSSQQ0Xty2HxmlXCx9icmXiRkGw-36UOkw/exec",
@@ -437,18 +433,18 @@
 
   document.getElementById("reset-link").addEventListener("click", goLanding);
 
-  // Entry point: resume mid-flow depending on how we got here.
+  // Navattic fires COMPLETE_FLOW when a visitor finishes the embedded demo.
+  navattic.onEvent(function (eventData) {
+    if (eventData && eventData.type === "COMPLETE_FLOW") {
+      document.getElementById("demo-iframe").src = "";
+      goCongrats();
+    }
+  });
+
+  // Entry point: resume mid-flow if returning from the (external) master-prize challenge.
   getKioskId();
-  const urlParams = new URLSearchParams(window.location.search);
   const existing = getSession();
-  if (urlParams.get("step") === "congrats") {
-    // navattic's own "redirect on completion" setting should point here —
-    // e.g. https://<your-hosted-url>/challenge.html?step=congrats
-    // That redirect breaks out of the iframe (top-level navigation), so this
-    // is the real signal that they finished the demo, not just clicked away.
-    history.replaceState(null, "", window.location.pathname);
-    goCongrats();
-  } else if (existing && existing.awaitingReturn === "second") {
+  if (existing && existing.awaitingReturn === "second") {
     goFinale();
   } else {
     goLanding();
