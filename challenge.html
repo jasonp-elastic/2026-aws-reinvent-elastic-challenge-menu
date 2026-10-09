@@ -441,13 +441,27 @@
     }
   });
 
-  // Entry point: resume mid-flow if returning from the (external) master-prize challenge.
-  getKioskId();
-  const existing = getSession();
-  if (existing && existing.awaitingReturn === "second") {
-    goFinale();
+  // If navattic's own "redirect on completion" setting points here with
+  // ?step=congrats, it navigates the IFRAME (not the top page) — browsers
+  // block a cross-origin iframe from navigating the top frame on its own.
+  // But since this redirect target is same-origin with the parent (both are
+  // this same page on GitHub Pages), this nested copy can just call the
+  // parent's functions directly instead of trying to navigate anywhere.
+  const urlParams = new URLSearchParams(window.location.search);
+  const isCompletionEcho = window.top !== window.self && urlParams.get("step") === "congrats";
+
+  if (isCompletionEcho) {
+    window.top.document.getElementById("demo-iframe").src = "";
+    window.top.goCongrats();
   } else {
-    goLanding();
+    // Entry point: resume mid-flow if returning from the (external) master-prize challenge.
+    getKioskId();
+    const existing = getSession();
+    if (existing && existing.awaitingReturn === "second") {
+      goFinale();
+    } else {
+      goLanding();
+    }
   }
 </script>
 </body>
